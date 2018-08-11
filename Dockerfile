@@ -2,10 +2,9 @@ FROM alpine:3.7
 
 EXPOSE 53
 
-RUN apk add --no-cache socat
+RUN apk add --no-cache socat inotify-tools
 
-COPY scripts/create-resolvconf.sh ./create-resolvconf.sh
-RUN chmod +x ./create-resolvconf.sh
+COPY scripts/dockerdns.sh ./dockerdns.sh
+RUN chmod +x ./dockerdns.sh
 
-CMD ./create-resolvconf.sh && \
-    socat -T15 udp4-recvfrom:53,reuseaddr,fork udp:127.0.0.11:53
+CMD ["./dockerdns.sh"]

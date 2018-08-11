@@ -27,4 +27,6 @@ services:
         image:          "webevt/dockerdns"
         volumes:
             - "/etc/resolv.conf:/tmp/resolv.conf"
+        environment:
+            RESOLVCONF: "/tmp/resolv.conf"
 ```
