@@ -1,13 +1,12 @@
 #!/bin/sh
 
-resolvconf_file="${RESOLVCONF:-/tmp/resolv.conf}";
+resolvconf_file="/tmp/resolv.conf";
 dockerdns_mark="# added by dockerdns";
 
 function cleanup () {
     while cat "${resolvconf_file}" | grep -q "${dockerdns_mark}"; do
         echo -e "/${dockerdns_mark}/d\nw" | ed "${resolvconf_file}" > /dev/null;
     done
-echo
 }
 
 function update_resolvconf () {
@@ -26,7 +25,10 @@ function update_resolvconf () {
 trap 'cleanup; exit 0' SIGTERM EXIT;
 
 update_resolvconf;
-while inotifywait -qq -emodify "${resolvconf_file}"; do update_resolvconf; done &
+
+# It is assumed that container restarts when inotify event occurs. This is done so because we cannot be sure that
+# resolv.conf is still properly mounted, because it can be broken when file is moved or deleted.
+while inotifywait -qq -emodify -edelete_self -emove_self -eunmount -eattrib "${resolvconf_file}"; do kill $$; done &
 
 socat -T15 udp4-recvfrom:53,reuseaddr,fork udp:127.0.0.11:53 &
 

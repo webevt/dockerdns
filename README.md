@@ -11,7 +11,7 @@ Docker Usage Example
 --------------------
 
 ```
-docker run --name dockerdns --rm -d -v"/etc/resolv.conf:/tmp/resolv.conf" webevt/dockerdns
+docker run --name dockerdns -d -v"/etc/resolv.conf:/tmp/resolv.conf" --restart=unless-stopped --dns=8.8.8.8 webevt/dockerdns:3.7-alpine
 ```
 
 Docker Compose Usage Example
@@ -24,9 +24,12 @@ services:
     dockerdns:
         container_name: "dockerdns"
         hostname:       "dockerdns"
-        image:          "webevt/dockerdns"
+        image:          "webevt/dockerdns:3.7-alpine"
         volumes:
             - "/etc/resolv.conf:/tmp/resolv.conf"
-        environment:
-            RESOLVCONF: "/tmp/resolv.conf"
+        # Restarts container if a change occurs in resolv.conf.
+        restart: unless-stopped
+        # Internal DNS server address which must be used by container to avoid recursive connections, because docker
+        # uses DNS server addresses from host machine by default.
+        dns: 8.8.8.8
 ```
